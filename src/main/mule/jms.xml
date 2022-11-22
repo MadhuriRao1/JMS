@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="da2275fe-300f-4507-b477-69349e12f48a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="5e19c072-9241-45a1-986d-d10e0684f71a" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:caching-strategy >
+				<jms:no-caching />
+			</jms:caching-strategy>
+			<jms:factory-configuration brokerUrl="tcp://localhost:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<flow name="jmsFlow" doc:id="461ba65b-9f91-4e5b-be6f-f88a6e2262f8" >
+		<http:listener doc:name="Listener" doc:id="2be5c507-b4b2-4945-ae18-366b74a56843" config-ref="HTTP_Listener_config" path="/JMS"/>
+		<jms:publish-consume doc:name="Publish consume" doc:id="39846c4b-f065-45d8-b337-6f0a9e15b0f6" config-ref="JMS_Config" destination="Input">
+			<jms:message >
+				<jms:reply-to destination="output" />
+			</jms:message>
+		</jms:publish-consume>
+		<logger level="INFO" doc:name="Logger" doc:id="71c2a439-d024-4b40-b2a8-04a7f42ce1bb" message="message sent by Amazon---------------#[payload]"/>
+	</flow>
+	<flow name="jmsFlow1" doc:id="83e1e1a3-bd34-43d3-87f1-2f4645cfd58c" >
+		<jms:listener doc:name="On New Message" doc:id="611523b4-83e8-42a3-8a6d-c7972785ec2c" config-ref="JMS_Config" destination="Input"/>
+		<set-payload value='#["Your request is received"]' doc:name="Set Payload" doc:id="f2a8e003-2fcb-45d3-a0e3-f9a987768fb6" />
+	</flow>
+</mule>
